@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: hotel_ota_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hotel_ota}
+      POSTGRES_USER: ${POSTGRES_USER:-db_migrator}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-migrator_secret_2026}
+      APP_RW_PASSWORD: ${APP_RW_PASSWORD:-app_rw_secret_2026}
+      REPORTING_RO_PASSWORD: ${REPORTING_RO_PASSWORD:-reporting_ro_secret_2026}
+      TZ: Asia/Ho_Chi_Minh
+      PGTZ: Asia/Ho_Chi_Minh
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata_hotel_ota:/var/lib/postgresql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database:/workspace/database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER:-db_migrator} -d ${POSTGRES_DB:-hotel_ota}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  pgdata_hotel_ota:
